@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { ViewProps } from "react-native";
 import { CardRow } from "@/components/cards/CardRow";
+import { usePlayOverlaySlots } from "@/hooks/usePlayOverlaySlots";
 import { useSettings } from "@/utils/atoms/settings";
 
 interface Props extends ViewProps {
@@ -96,6 +97,8 @@ export const InfiniteScrollingCollectionList: React.FC<Props> = ({
     return deduped;
   }, [data]);
 
+  const slots = usePlayOverlaySlots(allItems);
+
   if (disabled || !title) return null;
 
   const loadMore = () => {
@@ -111,6 +114,7 @@ export const InfiniteScrollingCollectionList: React.FC<Props> = ({
       title={title}
       kind={orientation === "horizontal" ? "wide" : "portrait"}
       items={allItems}
+      slots={slots}
       useEpisodePoster={settings?.useEpisodeImagesForNextUp}
       showParentTitle={showParentTitle}
       loading={isLoading}

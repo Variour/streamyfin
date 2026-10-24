@@ -529,6 +529,8 @@ export type Settings = {
    * the old TV-only `showTVHeroCarousel` key are migrated in `loadSettings`.
    */
   showHeroCarousel: boolean;
+  /** Phone/tablet: a Play button over home cards and on the hero carousel. */
+  showPlayOverlay: boolean;
   tvTypographyScale: TVTypographyScale;
   showSeriesPosterOnEpisode: boolean;
   tvThemeMusicEnabled: boolean;
@@ -709,6 +711,7 @@ export const defaultValues: Settings = {
   nativeVideoPlayerAndroidTV: false,
   showHomeBackdrop: true,
   showHeroCarousel: true,
+  showPlayOverlay: false,
   tvTypographyScale: TVTypographyScale.Default,
   showSeriesPosterOnEpisode: false,
   tvThemeMusicEnabled: true,

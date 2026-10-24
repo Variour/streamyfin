@@ -12,6 +12,7 @@ import type { HeroCarouselViewProps } from "./HeroCarousel.types";
 type NativeProps = {
   payload: string;
   onItemPress?: HeroCarouselViewProps["onItemPress"];
+  onPlayPress?: HeroCarouselViewProps["onPlayPress"];
   onFilterToggle?: HeroCarouselViewProps["onFilterToggle"];
   style?: HeroCarouselViewProps["style"];
 };
@@ -47,6 +48,7 @@ const HeroCarouselView: React.FC<HeroCarouselViewProps> = ({
   filterSections,
   filterLabel,
   onItemPress,
+  onPlayPress,
   onFilterToggle,
   style,
 }) => {
@@ -67,6 +69,7 @@ const HeroCarouselView: React.FC<HeroCarouselViewProps> = ({
     <NativeHeroCarouselView
       payload={payload}
       onItemPress={onItemPress}
+      onPlayPress={onPlayPress}
       onFilterToggle={onFilterToggle}
       style={style}
     />

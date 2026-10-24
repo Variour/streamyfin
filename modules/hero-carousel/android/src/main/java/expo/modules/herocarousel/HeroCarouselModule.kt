@@ -8,7 +8,7 @@ class HeroCarouselModule : Module() {
     Name("HeroCarousel")
 
     View(HeroCarouselExpoView::class) {
-      Events("onItemPress", "onFilterToggle")
+      Events("onItemPress", "onPlayPress", "onFilterToggle")
 
       // Everything the view renders arrives as one JSON string: the slides,
       // the image auth headers and the filter menu. The string prop exists

@@ -22,7 +22,9 @@ data class HeroItem(
   val badges: List<String>,
   val communityRating: Double?,
   /** Watch progress in 0..1; renders a progress bar when > 0. */
-  val progress: Float?
+  val progress: Float?,
+  /** Accessibility label of the Play button; the button shows only when set. */
+  val playLabel: String?
 )
 
 /** One row of the filter menu. Labels arrive pre-localized. */
@@ -84,7 +86,8 @@ private fun JSONObject.toHeroItem(): HeroItem? {
     posterUrl = stringOrNull("posterUrl"),
     badges = optJSONArray("badges").mapStrings(),
     communityRating = doubleOrNull("communityRating"),
-    progress = doubleOrNull("progress")?.toFloat()?.coerceIn(0f, 1f)
+    progress = doubleOrNull("progress")?.toFloat()?.coerceIn(0f, 1f),
+    playLabel = stringOrNull("playLabel")
   )
 }
 

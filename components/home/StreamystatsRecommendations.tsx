@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import type { ViewProps } from "react-native";
 
 import { CardRow } from "@/components/cards/CardRow";
+import { usePlayOverlaySlots } from "@/hooks/usePlayOverlaySlots";
 import { apiAtom, userAtom } from "@/providers/JellyfinProvider";
 import { useSettings } from "@/utils/atoms/settings";
 import { createStreamystatsApi } from "@/utils/streamystats/api";
@@ -128,6 +129,8 @@ export const StreamystatsRecommendations: React.FC<Props> = ({
   const isLoading = isLoadingRecommendations || isLoadingItems;
   const isError = isRecommendationsError || isItemsError;
 
+  const slots = usePlayOverlaySlots(items);
+
   if (!streamyStatsEnabled) return null;
   if (isError) return null;
   return (
@@ -137,6 +140,7 @@ export const StreamystatsRecommendations: React.FC<Props> = ({
       title={title}
       kind='portrait'
       items={items ?? []}
+      slots={slots}
       loading={isLoading}
       hideIfEmpty
     />

@@ -39,6 +39,7 @@ class HeroCarouselExpoView(context: Context, appContext: AppContext) :
   private val payload = mutableStateOf(HeroPayload.EMPTY)
 
   private val onItemPress by EventDispatcher()
+  private val onPlayPress by EventDispatcher()
   private val onFilterToggle by EventDispatcher()
 
   private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
@@ -70,6 +71,7 @@ class HeroCarouselExpoView(context: Context, appContext: AppContext) :
       HeroCarouselRoot(
         payload = payload.value,
         onItemPress = { id -> onItemPress(mapOf("id" to id)) },
+        onPlayPress = { id -> onPlayPress(mapOf("id" to id)) },
         onFilterToggle = { key -> onFilterToggle(mapOf("key" to key)) }
       )
     }

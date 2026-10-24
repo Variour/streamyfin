@@ -18,6 +18,11 @@ export type HeroCarouselItem = {
   communityRating?: number | null;
   /** Watch progress in 0–1; renders a progress bar when > 0. */
   progress?: number | null;
+  /**
+   * Pre-localized accessibility label of the Play button over the card. The
+   * button shows only on items that carry one.
+   */
+  playLabel?: string | null;
 };
 
 /** One row in the filter menu. */
@@ -48,6 +53,10 @@ export type HeroCarouselItemPressEvent = {
   id: string;
 };
 
+export type HeroCarouselPlayPressEvent = {
+  id: string;
+};
+
 export type HeroCarouselFilterToggleEvent = {
   key: string;
 };
@@ -64,6 +73,8 @@ export type HeroCarouselViewProps = {
   /** Pre-localized accessibility label for the filter button. */
   filterLabel?: string;
   onItemPress?: (event: { nativeEvent: HeroCarouselItemPressEvent }) => void;
+  /** Fires when the Play button over a card is tapped. */
+  onPlayPress?: (event: { nativeEvent: HeroCarouselPlayPressEvent }) => void;
   /** Fires with the toggled row's `key`; the caller owns the new state. */
   onFilterToggle?: (event: {
     nativeEvent: HeroCarouselFilterToggleEvent;

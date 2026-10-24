@@ -17,11 +17,13 @@ import { useWindowDimensions } from "react-native";
 import useRouter from "@/hooks/useAppRouter";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useHeadersForUrl } from "@/hooks/useHeadersForUrl";
+import { usePlayItem } from "@/hooks/usePlayItem";
 import {
   type HeroCarouselFilterSection,
   type HeroCarouselFilterToggleEvent,
   type HeroCarouselItem,
   type HeroCarouselItemPressEvent,
+  type HeroCarouselPlayPressEvent,
   HeroCarouselView,
   isHeroCarouselAvailable,
 } from "@/modules";
@@ -36,6 +38,7 @@ import { getLogoImageUrlById } from "@/utils/jellyfin/image/getLogoImageUrlById"
 import { getParentBackdropImageUrl } from "@/utils/jellyfin/image/getParentBackdropImageUrl";
 import { getPrimaryImageUrl } from "@/utils/jellyfin/image/getPrimaryImageUrl";
 import { toImagePixels } from "@/utils/jellyfin/image/imagePixels";
+import { isPlayableItem } from "@/utils/jellyfin/media/isPlayableItem";
 import { runtimeTicksToMinutes } from "@/utils/time";
 import { getItemNavigation } from "../common/TouchableItemRouter";
 
@@ -311,6 +314,7 @@ export const HomeHeroCarousel = () => {
   const { t } = useTranslation();
   const { settings, updateSettings, pluginSettings } = useSettings();
   const lightHapticFeedback = useHaptic("light");
+  const playItem = usePlayItem();
   const { width: windowWidth } = useWindowDimensions();
   const metrics = useMemo(() => heroMetrics(windowWidth), [windowWidth]);
   const segments = useSegments();
@@ -322,6 +326,7 @@ export const HomeHeroCarousel = () => {
   // `settings` starts empty before the stored values load; default to on so
   // the hero doesn't flash out of existence on a cold start.
   const showHeroCarousel = settings?.showHeroCarousel !== false;
+  const showPlayOverlay = settings?.showPlayOverlay === true;
 
   const filters = useMemo(() => {
     const {
@@ -565,8 +570,19 @@ export const HomeHeroCarousel = () => {
       progress: item.UserData?.PlayedPercentage
         ? item.UserData.PlayedPercentage / 100
         : null,
+      playLabel:
+        showPlayOverlay && isPlayableItem(item)
+          ? t("accessibility.play_button")
+          : null,
     }));
-  }, [api, entries, t, metrics.backdropWidth, metrics.backdropHeight]);
+  }, [
+    api,
+    entries,
+    t,
+    showPlayOverlay,
+    metrics.backdropWidth,
+    metrics.backdropHeight,
+  ]);
 
   // An admin-locked setting is dropped by updateSettings, so offering its row
   // would just be a dead tap. Omit those rows the way the settings screen
@@ -656,6 +672,16 @@ export const HomeHeroCarousel = () => {
     [entries, from, router, lightHapticFeedback],
   );
 
+  const handlePlayPress = useCallback(
+    (event: { nativeEvent: HeroCarouselPlayPressEvent }) => {
+      const item = entries?.find(
+        ({ item }) => item.Id === event.nativeEvent.id,
+      )?.item;
+      if (item) playItem(item);
+    },
+    [entries, playItem],
+  );
+
   // Keep the view mounted when filters emptied it, so the filter button (and
   // the way back) stays reachable over the empty-state skeleton.
   const hasActiveFilters =
@@ -670,6 +696,7 @@ export const HomeHeroCarousel = () => {
       filterSections={filterSections}
       filterLabel={t("home.hero.filter")}
       onItemPress={handleItemPress}
+      onPlayPress={handlePlayPress}
       onFilterToggle={handleFilterToggle}
       style={{
         width: "100%",

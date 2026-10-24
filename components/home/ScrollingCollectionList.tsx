@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { View, type ViewProps } from "react-native";
 import { CardRow } from "@/components/cards/CardRow";
 import { useInView } from "@/hooks/useInView";
+import { usePlayOverlaySlots } from "@/hooks/usePlayOverlaySlots";
 import { useSettings } from "@/utils/atoms/settings";
 
 interface Props extends ViewProps {
@@ -48,6 +49,8 @@ export const ScrollingCollectionList: React.FC<Props> = ({
   const { t } = useTranslation();
   const { settings } = useSettings();
 
+  const slots = usePlayOverlaySlots(data);
+
   // Show skeleton if loading OR if lazy loading is enabled and not in view yet
   const shouldShowSkeleton = isLoading || (enableLazyLoading && !isInView);
 
@@ -62,6 +65,7 @@ export const ScrollingCollectionList: React.FC<Props> = ({
         title={title}
         kind={orientation === "horizontal" ? "wide" : "portrait"}
         items={data ?? []}
+        slots={slots}
         useEpisodePoster={settings?.useEpisodeImagesForNextUp}
         loading={shouldShowSkeleton}
         emptyText={t("home.no_items")}

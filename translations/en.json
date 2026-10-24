@@ -172,6 +172,8 @@
         "show_home_backdrop": "Dynamic home backdrop",
         "show_hero_carousel": "Hero carousel",
         "show_hero_carousel_hint": "Show the large swipeable carousel at the top of the home screen.",
+        "show_play_overlay": "Play button on home items",
+        "show_play_overlay_hint": "Show a Play button over items on the home screen. Tapping it starts playback; tapping anywhere else opens the details.",
         "show_series_poster_on_episode": "Show series poster on episodes",
         "theme_music": "Theme music",
         "display_size": "Display size",

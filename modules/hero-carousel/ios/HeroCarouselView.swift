@@ -9,6 +9,7 @@ import UIKit
 struct HeroCarouselRootView: View {
   @ObservedObject var state: HeroCarouselState
   let onItemPress: (String) -> Void
+  let onPlayPress: (String) -> Void
   let onFilterToggle: (String) -> Void
 
   var body: some View {
@@ -22,13 +23,15 @@ struct HeroCarouselRootView: View {
         PagedHeroCarousel(
           items: state.items,
           headers: state.imageHeaders,
-          onItemPress: onItemPress
+          onItemPress: onItemPress,
+          onPlayPress: onPlayPress
         )
       } else {
         LegacyHeroCarousel(
           items: state.items,
           headers: state.imageHeaders,
-          onItemPress: onItemPress
+          onItemPress: onItemPress,
+          onPlayPress: onPlayPress
         )
       }
     }
@@ -71,6 +74,10 @@ private enum HeroLayout {
   static let pageMargin: CGFloat = 36
   static let cardSpacing: CGFloat = 12
   static let cardCornerRadius: CGFloat = 28
+  /// Diameter of the Play button centred in the free area of the card.
+  static let playButtonSize: CGFloat = 52
+  /// Height of the label chip row, which the Play button clears.
+  static let labelRowHeight: CGFloat = 28
   /// Extra backdrop width on each side, consumed by the parallax pan.
   static let parallaxAmount: CGFloat = 36
   /// Vertical space reserved under the cards for the page dots.
@@ -209,6 +216,7 @@ private struct PagedHeroCarousel: View {
   let items: [HeroItem]
   let headers: [String: String]
   let onItemPress: (String) -> Void
+  let onPlayPress: (String) -> Void
 
   @State private var scrolledID: String?
   /// The scroll starts at offset 0, which is the leading wrap clone, and
@@ -239,7 +247,8 @@ private struct PagedHeroCarousel: View {
               HeroCardView(
                 item: slide.item,
                 headers: headers,
-                onPress: { onItemPress(slide.item.id) }
+                onPress: { onItemPress(slide.item.id) },
+                onPlay: { onPlayPress(slide.item.id) }
               )
               // contentMargins already insets the container, so the full
               // relative width is the card width; the snapped card sits
@@ -339,6 +348,7 @@ private struct LegacyHeroCarousel: View {
   let items: [HeroItem]
   let headers: [String: String]
   let onItemPress: (String) -> Void
+  let onPlayPress: (String) -> Void
 
   @State private var selection: Int
 
@@ -347,11 +357,13 @@ private struct LegacyHeroCarousel: View {
   init(
     items: [HeroItem],
     headers: [String: String],
-    onItemPress: @escaping (String) -> Void
+    onItemPress: @escaping (String) -> Void,
+    onPlayPress: @escaping (String) -> Void
   ) {
     self.items = items
     self.headers = headers
     self.onItemPress = onItemPress
+    self.onPlayPress = onPlayPress
     // Slide 0 is the leading wrap clone whenever there is more than one item.
     _selection = State(initialValue: items.count > 1 ? 1 : 0)
   }
@@ -365,7 +377,8 @@ private struct LegacyHeroCarousel: View {
             HeroCardView(
               item: slide.item,
               headers: headers,
-              onPress: { onItemPress(slide.item.id) }
+              onPress: { onItemPress(slide.item.id) },
+              onPlay: { onPlayPress(slide.item.id) }
             )
             .padding(.horizontal, HeroLayout.pageMargin)
             .tag(index)
@@ -433,10 +446,20 @@ private struct LegacyHeroCarousel: View {
 
 // MARK: - Card
 
+private struct HeroInfoPanelHeightKey: PreferenceKey {
+  static var defaultValue: CGFloat = 0
+  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+    value = nextValue()
+  }
+}
+
 private struct HeroCardView: View {
   let item: HeroItem
   let headers: [String: String]
   let onPress: () -> Void
+  let onPlay: () -> Void
+
+  @State private var infoPanelHeight: CGFloat = 0
 
   var body: some View {
     GeometryReader { geo in
@@ -487,7 +510,36 @@ private struct HeroCardView: View {
       }
       .buttonStyle(HeroCardPressStyle())
       .shadow(color: .black.opacity(0.35), radius: 16, x: 0, y: 10)
+      .onPreferenceChange(HeroInfoPanelHeightKey.self) { infoPanelHeight = $0 }
+      // A sibling of the card button, not part of its label: a button inside
+      // a button's label does not reliably take its own taps.
+      .overlay {
+        if let playLabel = item.playLabel {
+          playButton(label: playLabel, in: geo.size)
+        }
+      }
     }
+  }
+
+  /// Centred in the free area between the label chip and the info panel.
+  private func playButton(label: String, in size: CGSize) -> some View {
+    let top = 12 + HeroLayout.labelRowHeight
+    let bottom = size.height - 12 - infoPanelHeight
+    return Button(action: onPlay) {
+      Image(systemName: "play.fill")
+        .font(.system(size: HeroLayout.playButtonSize * 0.4, weight: .bold))
+        .foregroundStyle(Color.black.opacity(0.8))
+        // The triangle's centre of mass sits left of its box.
+        .offset(x: 2)
+        .frame(
+          width: HeroLayout.playButtonSize, height: HeroLayout.playButtonSize
+        )
+        .background(Circle().fill(Color.white.opacity(0.6)))
+        .contentShape(Circle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(label)
+    .position(x: size.width / 2, y: (top + max(bottom, top)) / 2)
   }
 
   private func labelChip(_ label: String, icon: String?) -> some View {
@@ -554,6 +606,12 @@ private struct HeroCardView: View {
       }
     }
     .padding(12)
+    .background(
+      GeometryReader { panel in
+        Color.clear.preference(
+          key: HeroInfoPanelHeightKey.self, value: panel.size.height)
+      }
+    )
     .background(
       .ultraThinMaterial,
       in: RoundedRectangle(cornerRadius: 20, style: .continuous)

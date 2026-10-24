@@ -19,10 +19,13 @@ struct HeroItem: Identifiable, Equatable, Decodable {
   let communityRating: Double?
   /// Watch progress in 0...1; renders a progress bar when > 0.
   let progress: Double?
+  /// Accessibility label of the Play button; the button shows only when set.
+  let playLabel: String?
 
   private enum CodingKeys: String, CodingKey {
     case id, title, subtitle, overview, label, labelIcon
     case backdropUrl, logoUrl, posterUrl, badges, communityRating, progress
+    case playLabel
   }
 
   init(from decoder: Decoder) throws {
@@ -41,6 +44,7 @@ struct HeroItem: Identifiable, Equatable, Decodable {
       Double.self, forKey: .communityRating)
     progress = try container.decodeIfPresent(Double.self, forKey: .progress)
       .map { min(max($0, 0), 1) }
+    playLabel = try container.decodeIfPresent(String.self, forKey: .playLabel)
   }
 }
 
@@ -86,6 +90,7 @@ class HeroCarouselExpoView: ExpoView {
   private let state = HeroCarouselState()
 
   let onItemPress = EventDispatcher()
+  let onPlayPress = EventDispatcher()
   let onFilterToggle = EventDispatcher()
 
   required init(appContext: AppContext? = nil) {
@@ -99,6 +104,9 @@ class HeroCarouselExpoView: ExpoView {
       state: state,
       onItemPress: { [weak self] itemId in
         self?.onItemPress(["id": itemId])
+      },
+      onPlayPress: { [weak self] itemId in
+        self?.onPlayPress(["id": itemId])
       },
       onFilterToggle: { [weak self] key in
         self?.onFilterToggle(["key": key])

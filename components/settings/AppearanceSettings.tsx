@@ -64,6 +64,19 @@ export const AppearanceSettings: React.FC = () => {
           </ListItem>
         )}
         <ListItem
+          title={t("home.settings.appearance.show_play_overlay")}
+          subtitle={t("home.settings.appearance.show_play_overlay_hint")}
+          disabled={pluginSettings?.showPlayOverlay?.locked}
+        >
+          <SettingSwitch
+            value={settings.showPlayOverlay}
+            disabled={pluginSettings?.showPlayOverlay?.locked}
+            onValueChange={(value) =>
+              updateSettings({ showPlayOverlay: value })
+            }
+          />
+        </ListItem>
+        <ListItem
           title={t("home.settings.appearance.merge_next_up_continue_watching")}
           subtitle={t(
             "home.settings.appearance.merge_next_up_continue_watching_hint",

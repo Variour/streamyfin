@@ -78,6 +78,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -107,6 +111,7 @@ private object HeroLayout {
   /** Vertical space reserved under the cards for the page dots. */
   val DotsArea = 24.dp
   val CardElevation = 12.dp
+  val PlayButtonSize = 52.dp
   val PanelBlur = 24.dp
 }
 
@@ -147,6 +152,7 @@ private val HairlineColor = Color.White.copy(alpha = 0.15f)
 internal fun HeroCarouselRoot(
   payload: HeroPayload,
   onItemPress: (String) -> Unit,
+  onPlayPress: (String) -> Unit,
   onFilterToggle: (String) -> Unit
 ) {
   // The app is dark themed; force a dark scheme so the filter menu renders
@@ -161,7 +167,8 @@ internal fun HeroCarouselRoot(
         HeroPager(
           items = payload.items,
           headers = payload.imageHeaders,
-          onItemPress = onItemPress
+          onItemPress = onItemPress,
+          onPlayPress = onPlayPress
         )
       }
 
@@ -203,7 +210,8 @@ private val HeroColorScheme = darkColorScheme(
 private fun HeroPager(
   items: List<HeroItem>,
   headers: Map<String, String>,
-  onItemPress: (String) -> Unit
+  onItemPress: (String) -> Unit,
+  onPlayPress: (String) -> Unit
 ) {
   val count = items.size
   val pagerState = rememberPagerState(initialPage = infiniteStartPage(count)) {
@@ -240,7 +248,8 @@ private fun HeroPager(
           // A lambda, not a value: read inside the draw phase so a swipe
           // re-runs the layer instead of recomposing three cards per frame.
           pageOffset = { pagerState.offsetForPage(page) },
-          onPress = { onItemPress(item.id) }
+          onPress = { onItemPress(item.id) },
+          onPlay = { onPlayPress(item.id) }
         )
       }
     }
@@ -293,7 +302,8 @@ private fun HeroCard(
   cardWidth: Dp,
   cardHeight: Dp,
   pageOffset: () -> Float,
-  onPress: () -> Unit
+  onPress: () -> Unit,
+  onPlay: () -> Unit
 ) {
   val shape = RoundedCornerShape(HeroLayout.CardCorner)
   val interactionSource = remember { MutableInteractionSource() }
@@ -338,7 +348,14 @@ private fun HeroCard(
       if (!label.isNullOrEmpty()) {
         HeroLabelChip(label, item.labelIcon)
       }
-      Spacer(Modifier.weight(1f))
+      // The free area between the chip and the info panel; the Play button
+      // sits in its centre.
+      Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+        val playLabel = item.playLabel
+        if (playLabel != null) {
+          HeroPlayButton(label = playLabel, onClick = onPlay)
+        }
+      }
       HeroInfoPanel(
         item = item,
         headers = headers,
@@ -349,6 +366,27 @@ private fun HeroCard(
         pageOffset = pageOffset
       )
     }
+  }
+}
+
+/** Round, translucent white Play button. Takes its own taps; the card keeps the rest. */
+@Composable
+private fun HeroPlayButton(label: String, onClick: () -> Unit) {
+  Box(
+    Modifier
+      .size(HeroLayout.PlayButtonSize)
+      .clip(CircleShape)
+      .background(Color.White.copy(alpha = 0.6f))
+      .semantics { contentDescription = label; role = Role.Button }
+      .clickable(onClick = onClick),
+    contentAlignment = Alignment.Center
+  ) {
+    Icon(
+      imageVector = Icons.Filled.PlayArrow,
+      contentDescription = null,
+      tint = Color.Black.copy(alpha = 0.8f),
+      modifier = Modifier.size(HeroLayout.PlayButtonSize * 0.6f)
+    )
   }
 }
 

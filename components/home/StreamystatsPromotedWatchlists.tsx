@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { View, type ViewProps } from "react-native";
 import { CardRow } from "@/components/cards/CardRow";
 import { Text } from "@/components/common/Text";
+import { usePlayOverlaySlots } from "@/hooks/usePlayOverlaySlots";
 import { apiAtom, userAtom } from "@/providers/JellyfinProvider";
 import { useSettings } from "@/utils/atoms/settings";
 import { createStreamystatsApi } from "@/utils/streamystats/api";
@@ -84,6 +85,8 @@ const WatchlistSection: React.FC<WatchlistSectionProps> = ({
     } as any);
   };
 
+  const slots = usePlayOverlaySlots(items);
+
   if (!isLoading && (!items || items.length === 0)) return null;
 
   return (
@@ -95,6 +98,7 @@ const WatchlistSection: React.FC<WatchlistSectionProps> = ({
       onPressSeeAll={handleSeeAll}
       kind='portrait'
       items={items ?? []}
+      slots={slots}
       loading={isLoading}
     />
   );

@@ -5,7 +5,7 @@ public class HeroCarouselModule: Module {
     Name("HeroCarousel")
 
     View(HeroCarouselExpoView.self) {
-      Events("onItemPress", "onFilterToggle")
+      Events("onItemPress", "onPlayPress", "onFilterToggle")
 
       // Everything the view renders arrives as one JSON string: the slides
       // and the image auth headers. Typed Record/Dictionary props proved
