@@ -3,6 +3,7 @@
 import "tsx/cjs";
 import { execFileSync } from "node:child_process";
 import type { ConfigContext, ExpoConfig } from "expo/config";
+import { withEntitlementsPlist } from "expo/config-plugins";
 
 // Build metadata, injected into `extra.build` and read at runtime via
 // expo-constants (see utils/version.ts). Sources in priority order:
@@ -95,8 +96,21 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   config.extra = { ...config.extra, build: buildMeta };
 
-  return {
+  const resolved = {
     ...(Object.keys(androidConfig).length > 0 && { android: androidConfig }),
     ...config,
   } as ExpoConfig;
+
+  // A free "Personal Team" cannot sign the Wi-Fi Information and Push
+  // Notifications capabilities, so a device build for debugging drops them.
+  // Registered before the plugins, so this mod runs after theirs have written.
+  if (process.env.PERSONAL_TEAM === "1") {
+    return withEntitlementsPlist(resolved, (c) => {
+      delete c.modResults["aps-environment"];
+      delete c.modResults["com.apple.developer.networking.wifi-info"];
+      return c;
+    });
+  }
+
+  return resolved;
 };
