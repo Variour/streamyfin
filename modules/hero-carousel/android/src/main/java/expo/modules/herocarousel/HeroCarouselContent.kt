@@ -112,9 +112,6 @@ private object HeroLayout {
   val DotsArea = 24.dp
   val CardElevation = 12.dp
   val PlayButtonSize = 32.dp
-  /** Size of the filter button drawn over the card's top right corner. */
-  val FilterButtonSize = 32.dp
-  val PlayButtonGap = 8.dp
   val PanelBlur = 24.dp
 }
 
@@ -359,23 +356,8 @@ private fun HeroCard(
         cardWidth = cardWidth,
         cardHeight = cardHeight,
         parallaxPx = parallaxPx,
-        pageOffset = pageOffset
-      )
-    }
-
-    // Top right, left of the filter button that the root draws over the same
-    // corner.
-    val playLabel = item.playLabel
-    if (playLabel != null) {
-      HeroPlayButton(
-        label = playLabel,
-        onClick = onPlay,
-        modifier = Modifier
-          .align(Alignment.TopEnd)
-          .padding(
-            top = HeroLayout.CardPadding,
-            end = HeroLayout.CardPadding + HeroLayout.FilterButtonSize + HeroLayout.PlayButtonGap
-          )
+        pageOffset = pageOffset,
+        onPlay = onPlay
       )
     }
   }
@@ -500,7 +482,8 @@ private fun HeroInfoPanel(
   cardWidth: Dp,
   cardHeight: Dp,
   parallaxPx: Float,
-  pageOffset: () -> Float
+  pageOffset: () -> Float,
+  onPlay: () -> Unit
 ) {
   val shape = RoundedCornerShape(HeroLayout.PanelCorner)
   Box(
@@ -567,7 +550,10 @@ private fun HeroInfoPanel(
         }
 
         Column(
-          modifier = Modifier.weight(1f),
+          modifier = Modifier
+            .weight(1f)
+            // Clears the Play button in the panel's top right corner.
+            .padding(end = if (item.playLabel != null) HeroLayout.PlayButtonSize + 8.dp else 0.dp),
           verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
           HeroLogo(item.logoUrl, headers, item.title)
@@ -604,6 +590,17 @@ private fun HeroInfoPanel(
       if (progress != null && progress > 0.01f) {
         HeroProgressBar(progress)
       }
+    }
+
+    val playLabel = item.playLabel
+    if (playLabel != null) {
+      HeroPlayButton(
+        label = playLabel,
+        onClick = onPlay,
+        modifier = Modifier
+          .align(Alignment.TopEnd)
+          .padding(HeroLayout.CardPadding)
+      )
     }
   }
 }
