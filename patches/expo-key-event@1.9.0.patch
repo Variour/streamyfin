@@ -1,7 +1,7 @@
 diff --git a/ios/ExpoKeyEventModule.swift b/ios/ExpoKeyEventModule.swift
 --- a/ios/ExpoKeyEventModule.swift
 +++ b/ios/ExpoKeyEventModule.swift
-@@ -48,11 +48,25 @@
+@@ -48,13 +48,36 @@
                self.keyboardListenerView = listenerView
              }
            #else
@@ -9,25 +9,37 @@ diff --git a/ios/ExpoKeyEventModule.swift b/ios/ExpoKeyEventModule.swift
 -             let rootView = window?.rootViewController?.view {
 -              rootView.addSubview(listenerView)
 -              listenerView.becomeFirstResponder()  // crucial for receiving hardware key events
+-              self.keyboardListenerView = listenerView
 +            // Attach to the window itself: a view inside the root view controller
 +            // leaves the hierarchy while a fullscreen modal (the player) covers it,
 +            // and then never becomes first responder (iPad hardware keyboard).
 +            let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-+            let window = scenes.flatMap { $0.windows }.first { $0.isKeyWindow }
++            let windows = scenes.flatMap { $0.windows }
++            let window = windows.first { $0.isKeyWindow }
++              ?? windows.first
 +              ?? UIApplication.shared.delegate?.window.flatMap { $0 }
-+            if let window = window {
-+              window.addSubview(listenerView)
-               self.keyboardListenerView = listenerView
-+              let first = listenerView.becomeFirstResponder()
-+              // TEMP debug: reports the outcome through the normal JS event log.
-+              self.sendEvent("onKeyPress", ["key": "dbg:first=\(first) win=\(window.isKeyWindow) inWindow=\(listenerView.window != nil)", "eventType": "press"])
-+              if !first {
-+                // The modal can still be mid presentation; try again once it settled.
-+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak listenerView] in
-+                  let again = listenerView?.becomeFirstResponder() ?? false
-+                  self.sendEvent("onKeyPress", ["key": "dbg:retry=\(again)", "eventType": "press"])
-+                }
++            guard let window = window else {
++              // TEMP debug
++              self.sendEvent("onKeyPress", ["key": "dbg:nowindow scenes=\(scenes.count)", "eventType": "press"])
++              return
++            }
++            window.addSubview(listenerView)
++            self.keyboardListenerView = listenerView
++            let first = listenerView.becomeFirstResponder()
++            // TEMP debug: reports the outcome through the normal JS event log.
++            self.sendEvent("onKeyPress", ["key": "dbg:first=\(first) win=\(window.isKeyWindow) inWindow=\(listenerView.window != nil)", "eventType": "press"])
++            if !first {
++              // The modal can still be mid presentation; try again once it settled.
++              DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak listenerView] in
++                let again = listenerView?.becomeFirstResponder() ?? false
++                self.sendEvent("onKeyPress", ["key": "dbg:retry=\(again)", "eventType": "press"])
 +              }
              }
            #endif
++        } else {
++          // TEMP debug: a stale view from an earlier listener is still attached.
++          let stale = self.keyboardListenerView
++          self.sendEvent("onKeyPress", ["key": "dbg:alreadyListening first=\(stale?.isFirstResponder ?? false) inWindow=\(stale?.window != nil)", "eventType": "press"])
          }
+       }
+     }
