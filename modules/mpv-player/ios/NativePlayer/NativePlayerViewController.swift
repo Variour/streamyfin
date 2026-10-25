@@ -355,6 +355,7 @@ final class NativePlayerViewController: UIViewController {
 		engine.setPictureInPictureHostVisible(true)
 		UIApplication.shared.isIdleTimerDisabled = viewModel.isPlaying
 		#if os(iOS)
+		becomeFirstResponder()
 		UIApplication.shared.setStatusBarHidden(!viewModel.controlsVisible, with: .none)
 		#endif
 		#if os(tvOS)
@@ -364,6 +365,46 @@ final class NativePlayerViewController: UIViewController {
 		focusCoordinator.refresh()
 		#endif
 	}
+
+	#if os(iOS)
+	// MARK: - Hardware keyboard (iPad)
+
+	// The key commands only fire while this controller is in the responder
+	// chain, so it claims first responder once on screen.
+	override var canBecomeFirstResponder: Bool { true }
+
+	override var keyCommands: [UIKeyCommand]? {
+		let commands = [
+			UIKeyCommand(input: " ", modifierFlags: [], action: #selector(handleSpaceKey)),
+			UIKeyCommand(input: UIKeyCommand.inputLeftArrow, modifierFlags: [], action: #selector(handleLeftArrowKey)),
+			UIKeyCommand(input: UIKeyCommand.inputRightArrow, modifierFlags: [], action: #selector(handleRightArrowKey)),
+		]
+		// Without priority the system keeps the space bar for focused controls.
+		for command in commands { command.wantsPriorityOverSystemBehavior = true }
+		return commands
+	}
+
+	/// The prompts and the lock mode own the input, same as the touch controls:
+	/// nothing may resume or move playback under them.
+	private var keyboardInputAllowed: Bool {
+		!viewModel.showStillWatching && !viewModel.showEpisodeList && !viewModel.controlsLocked
+	}
+
+	@objc private func handleSpaceKey() {
+		guard keyboardInputAllowed else { return }
+		viewModel.togglePlayPause()
+	}
+
+	@objc private func handleLeftArrowKey() {
+		guard keyboardInputAllowed else { return }
+		viewModel.seekBackward()
+	}
+
+	@objc private func handleRightArrowKey() {
+		guard keyboardInputAllowed else { return }
+		viewModel.seekForward()
+	}
+	#endif
 
 	override func viewWillDisappear(_ animated: Bool) {
 		super.viewWillDisappear(animated)
