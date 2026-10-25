@@ -105,6 +105,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   // Notifications capabilities, so a device build for debugging drops them.
   // Registered before the plugins, so this mod runs after theirs have written.
   if (process.env.PERSONAL_TEAM === "1") {
+    // The upstream bundle id belongs to another team and cannot be signed.
+    resolved.ios = {
+      ...resolved.ios,
+      bundleIdentifier: "com.variour.streamyfin",
+    };
     return withEntitlementsPlist(resolved, (c) => {
       delete c.modResults["aps-environment"];
       delete c.modResults["com.apple.developer.networking.wifi-info"];
