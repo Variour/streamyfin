@@ -74,10 +74,13 @@ private enum HeroLayout {
   static let pageMargin: CGFloat = 36
   static let cardSpacing: CGFloat = 12
   static let cardCornerRadius: CGFloat = 28
-  /// Diameter of the Play button centred in the free area of the card.
-  static let playButtonSize: CGFloat = 52
-  /// Height of the label chip row, which the Play button clears.
-  static let labelRowHeight: CGFloat = 28
+  /// Diameter of the Play button in the card's top right corner.
+  static let playButtonSize: CGFloat = 32
+  /// Diameter of the filter button drawn over the same corner, which the Play
+  /// button sits to the left of.
+  static let filterButtonSize: CGFloat = 32
+  static let playButtonGap: CGFloat = 8
+  static let cardPadding: CGFloat = 12
   /// Extra backdrop width on each side, consumed by the parallax pan.
   static let parallaxAmount: CGFloat = 36
   /// Vertical space reserved under the cards for the page dots.
@@ -446,20 +449,11 @@ private struct LegacyHeroCarousel: View {
 
 // MARK: - Card
 
-private struct HeroInfoPanelHeightKey: PreferenceKey {
-  static var defaultValue: CGFloat = 0
-  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-    value = nextValue()
-  }
-}
-
 private struct HeroCardView: View {
   let item: HeroItem
   let headers: [String: String]
   let onPress: () -> Void
   let onPlay: () -> Void
-
-  @State private var infoPanelHeight: CGFloat = 0
 
   var body: some View {
     GeometryReader { geo in
@@ -510,27 +504,28 @@ private struct HeroCardView: View {
       }
       .buttonStyle(HeroCardPressStyle())
       .shadow(color: .black.opacity(0.35), radius: 16, x: 0, y: 10)
-      .onPreferenceChange(HeroInfoPanelHeightKey.self) { infoPanelHeight = $0 }
       // A sibling of the card button, not part of its label: a button inside
       // a button's label does not reliably take its own taps.
-      .overlay {
+      .overlay(alignment: .topTrailing) {
         if let playLabel = item.playLabel {
-          playButton(label: playLabel, in: geo.size)
+          playButton(label: playLabel)
+            .padding(.top, HeroLayout.cardPadding)
+            .padding(
+              .trailing,
+              HeroLayout.cardPadding + HeroLayout.filterButtonSize
+                + HeroLayout.playButtonGap)
         }
       }
     }
   }
 
-  /// Centred in the free area between the label chip and the info panel.
-  private func playButton(label: String, in size: CGSize) -> some View {
-    let top = 12 + HeroLayout.labelRowHeight
-    let bottom = size.height - 12 - infoPanelHeight
-    return Button(action: onPlay) {
+  private func playButton(label: String) -> some View {
+    Button(action: onPlay) {
       Image(systemName: "play.fill")
         .font(.system(size: HeroLayout.playButtonSize * 0.4, weight: .bold))
         .foregroundStyle(Color.black.opacity(0.8))
         // The triangle's centre of mass sits left of its box.
-        .offset(x: 2)
+        .offset(x: 1)
         .frame(
           width: HeroLayout.playButtonSize, height: HeroLayout.playButtonSize
         )
@@ -539,7 +534,6 @@ private struct HeroCardView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(label)
-    .position(x: size.width / 2, y: (top + max(bottom, top)) / 2)
   }
 
   private func labelChip(_ label: String, icon: String?) -> some View {
@@ -606,12 +600,6 @@ private struct HeroCardView: View {
       }
     }
     .padding(12)
-    .background(
-      GeometryReader { panel in
-        Color.clear.preference(
-          key: HeroInfoPanelHeightKey.self, value: panel.size.height)
-      }
-    )
     .background(
       .ultraThinMaterial,
       in: RoundedRectangle(cornerRadius: 20, style: .continuous)

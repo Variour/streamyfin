@@ -1,5 +1,8 @@
 /** Diameter of the Play button over a home card, in layout points. */
-export const PLAY_OVERLAY_SIZE = 44;
+export const PLAY_OVERLAY_SIZE = 30;
+
+/** Distance of the Play button from the card's top and left edge. */
+export const PLAY_OVERLAY_INSET = 6;
 
 /** Fill of the Play button over a home card: white, see-through. */
 export const PLAY_OVERLAY_BACKGROUND = "rgba(255,255,255,0.6)";

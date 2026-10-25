@@ -5,12 +5,14 @@ import {
   PLAY_OVERLAY_BACKGROUND,
   PLAY_OVERLAY_HIT_SLOP,
   PLAY_OVERLAY_ICON_COLOR,
+  PLAY_OVERLAY_INSET,
   PLAY_OVERLAY_SIZE,
 } from "@/constants/PlayOverlay";
 
 /**
- * A round Play button centred on a card's artwork, for `CardSlots.overlay`.
- * It takes its own presses; the rest of the card still opens the details.
+ * A round Play button in the top left corner of a card's artwork, for
+ * `CardSlots.overlay`. It takes its own presses; the rest of the card still
+ * opens the details.
  */
 export const CardPlayOverlay: React.FC<{ onPress: () => void }> = ({
   onPress,
@@ -25,12 +27,10 @@ export const CardPlayOverlay: React.FC<{ onPress: () => void }> = ({
       accessibilityLabel={t("accessibility.play_button")}
       style={{
         position: "absolute",
-        top: "50%",
-        left: "50%",
+        top: PLAY_OVERLAY_INSET,
+        left: PLAY_OVERLAY_INSET,
         width: PLAY_OVERLAY_SIZE,
         height: PLAY_OVERLAY_SIZE,
-        marginTop: -PLAY_OVERLAY_SIZE / 2,
-        marginLeft: -PLAY_OVERLAY_SIZE / 2,
         borderRadius: PLAY_OVERLAY_SIZE / 2,
         alignItems: "center",
         justifyContent: "center",
@@ -42,7 +42,7 @@ export const CardPlayOverlay: React.FC<{ onPress: () => void }> = ({
         size={PLAY_OVERLAY_SIZE * 0.5}
         color={PLAY_OVERLAY_ICON_COLOR}
         // The triangle's centre of mass sits left of its box.
-        style={{ marginLeft: 3 }}
+        style={{ marginLeft: 2 }}
       />
     </TouchableOpacity>
   );

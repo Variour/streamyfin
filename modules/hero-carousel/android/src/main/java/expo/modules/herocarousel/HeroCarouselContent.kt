@@ -111,7 +111,10 @@ private object HeroLayout {
   /** Vertical space reserved under the cards for the page dots. */
   val DotsArea = 24.dp
   val CardElevation = 12.dp
-  val PlayButtonSize = 52.dp
+  val PlayButtonSize = 32.dp
+  /** Size of the filter button drawn over the card's top right corner. */
+  val FilterButtonSize = 32.dp
+  val PlayButtonGap = 8.dp
   val PanelBlur = 24.dp
 }
 
@@ -348,14 +351,7 @@ private fun HeroCard(
       if (!label.isNullOrEmpty()) {
         HeroLabelChip(label, item.labelIcon)
       }
-      // The free area between the chip and the info panel; the Play button
-      // sits in its centre.
-      Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-        val playLabel = item.playLabel
-        if (playLabel != null) {
-          HeroPlayButton(label = playLabel, onClick = onPlay)
-        }
-      }
+      Spacer(Modifier.weight(1f))
       HeroInfoPanel(
         item = item,
         headers = headers,
@@ -366,14 +362,30 @@ private fun HeroCard(
         pageOffset = pageOffset
       )
     }
+
+    // Top right, left of the filter button that the root draws over the same
+    // corner.
+    val playLabel = item.playLabel
+    if (playLabel != null) {
+      HeroPlayButton(
+        label = playLabel,
+        onClick = onPlay,
+        modifier = Modifier
+          .align(Alignment.TopEnd)
+          .padding(
+            top = HeroLayout.CardPadding,
+            end = HeroLayout.CardPadding + HeroLayout.FilterButtonSize + HeroLayout.PlayButtonGap
+          )
+      )
+    }
   }
 }
 
 /** Round, translucent white Play button. Takes its own taps; the card keeps the rest. */
 @Composable
-private fun HeroPlayButton(label: String, onClick: () -> Unit) {
+private fun HeroPlayButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
   Box(
-    Modifier
+    modifier
       .size(HeroLayout.PlayButtonSize)
       .clip(CircleShape)
       .background(Color.White.copy(alpha = 0.6f))
