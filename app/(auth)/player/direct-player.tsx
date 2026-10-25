@@ -1847,6 +1847,15 @@ export default function DirectPlayerPage() {
                 </View>
               )}
             </View>
+            {(() => {
+              console.log("[keytest] controls gate", {
+                isMounted,
+                hasItem: !!item,
+                isPipMode,
+                isTV: Platform.isTV,
+              });
+              return null;
+            })()}
             {isMounted === true &&
               item &&
               !isPipMode &&
