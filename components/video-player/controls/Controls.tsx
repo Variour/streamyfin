@@ -309,6 +309,10 @@ export const Controls: FC<Props> = ({
     play,
   });
 
+  useEffect(() => {
+    console.log("[keytest] Controls mounted");
+  }, []);
+
   useKeyEventListener((e) => {
     console.log("[keytest] event", JSON.stringify(e));
     if (e?.eventType !== "press") return;

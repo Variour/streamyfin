@@ -1,7 +1,7 @@
 diff --git a/ios/ExpoKeyEventModule.swift b/ios/ExpoKeyEventModule.swift
 --- a/ios/ExpoKeyEventModule.swift
 +++ b/ios/ExpoKeyEventModule.swift
-@@ -48,11 +48,21 @@
+@@ -48,11 +48,25 @@
                self.keyboardListenerView = listenerView
              }
            #else
@@ -18,10 +18,14 @@ diff --git a/ios/ExpoKeyEventModule.swift b/ios/ExpoKeyEventModule.swift
 +            if let window = window {
 +              window.addSubview(listenerView)
                self.keyboardListenerView = listenerView
-+              if !listenerView.becomeFirstResponder() {
++              let first = listenerView.becomeFirstResponder()
++              // TEMP debug: reports the outcome through the normal JS event log.
++              self.sendEvent("onKeyPress", ["key": "dbg:first=\(first) win=\(window.isKeyWindow) inWindow=\(listenerView.window != nil)", "eventType": "press"])
++              if !first {
 +                // The modal can still be mid presentation; try again once it settled.
 +                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak listenerView] in
-+                  listenerView?.becomeFirstResponder()
++                  let again = listenerView?.becomeFirstResponder() ?? false
++                  self.sendEvent("onKeyPress", ["key": "dbg:retry=\(again)", "eventType": "press"])
 +                }
 +              }
              }
