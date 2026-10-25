@@ -446,13 +446,6 @@ private struct LegacyHeroCarousel: View {
 
 // MARK: - Card
 
-private struct HeroInfoPanelHeightKey: PreferenceKey {
-  static var defaultValue: CGFloat = 0
-  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-    value = nextValue()
-  }
-}
-
 private struct HeroCardView: View {
   let item: HeroItem
   let headers: [String: String]
@@ -510,7 +503,6 @@ private struct HeroCardView: View {
       }
       .buttonStyle(HeroCardPressStyle())
       .shadow(color: .black.opacity(0.35), radius: 16, x: 0, y: 10)
-      .onPreferenceChange(HeroInfoPanelHeightKey.self) { infoPanelHeight = $0 }
       // A sibling of the card button, not part of its label: a button inside
       // a button's label does not reliably take its own taps. It is placed
       // over the info panel's top right corner: the panel sits cardPadding
@@ -611,10 +603,13 @@ private struct HeroCardView: View {
       }
     }
     .padding(12)
+    // Measured straight into state: a preference does not make it out of the
+    // card button's label.
     .background(
       GeometryReader { panel in
-        Color.clear.preference(
-          key: HeroInfoPanelHeightKey.self, value: panel.size.height)
+        Color.clear
+          .onAppear { infoPanelHeight = panel.size.height }
+          .onChange(of: panel.size.height) { infoPanelHeight = $0 }
       }
     )
     .background(
