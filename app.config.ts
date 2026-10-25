@@ -3,7 +3,6 @@
 import "tsx/cjs";
 import { execFileSync } from "node:child_process";
 import type { ConfigContext, ExpoConfig } from "expo/config";
-import { withEntitlementsPlist } from "expo/config-plugins";
 
 // Build metadata, injected into `extra.build` and read at runtime via
 // expo-constants (see utils/version.ts). Sources in priority order:
@@ -105,16 +104,21 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   // Notifications capabilities, so a device build for debugging drops them.
   // Registered before the plugins, so this mod runs after theirs have written.
   if (process.env.PERSONAL_TEAM === "1") {
+    // Loaded here: the plugins package does not load under Jest.
+    const { withEntitlementsPlist } = require("expo/config-plugins");
     // The upstream bundle id belongs to another team and cannot be signed.
     resolved.ios = {
       ...resolved.ios,
       bundleIdentifier: "com.variour.streamyfin",
     };
-    return withEntitlementsPlist(resolved, (c) => {
-      delete c.modResults["aps-environment"];
-      delete c.modResults["com.apple.developer.networking.wifi-info"];
-      return c;
-    });
+    return withEntitlementsPlist(
+      resolved,
+      (c: { modResults: Record<string, unknown> }) => {
+        delete c.modResults["aps-environment"];
+        delete c.modResults["com.apple.developer.networking.wifi-info"];
+        return c;
+      },
+    );
   }
 
   return resolved;
