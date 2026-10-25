@@ -381,6 +381,11 @@ final class NativePlayerViewController: UIViewController {
 		]
 		// Without priority the system keeps the space bar for focused controls.
 		for command in commands { command.wantsPriorityOverSystemBehavior = true }
+		// A held space bar would flip play and pause on every repeat; the arrows
+		// keep repeating so holding one keeps seeking.
+		if #available(iOS 17.0, *) {
+			commands[0].isRepeatable = false
+		}
 		return commands
 	}
 
