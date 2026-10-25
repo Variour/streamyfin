@@ -310,10 +310,18 @@ export const Controls: FC<Props> = ({
   });
 
   useKeyEventListener((e) => {
+    console.log("[keytest] event", JSON.stringify(e));
     if (e?.eventType !== "press") return;
     markStillWatchingInput();
     // Nothing may resume playback under the prompt but its own answer.
-    if (episodeView || showAudioSlider || stillWatchingVisible) return;
+    if (episodeView || showAudioSlider || stillWatchingVisible) {
+      console.log("[keytest] blocked", {
+        episodeView,
+        showAudioSlider,
+        stillWatchingVisible,
+      });
+      return;
+    }
     const key = e.key;
 
     if (key === " " || key === "Spacebar" || key === "Space") {
