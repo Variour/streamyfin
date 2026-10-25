@@ -374,30 +374,29 @@ final class NativePlayerViewController: UIViewController {
 	override var canBecomeFirstResponder: Bool { true }
 
 	override var keyCommands: [UIKeyCommand]? {
+		// The arrows repeat while held, so holding one keeps seeking. The space
+		// bar is not a key command: a command repeats too and a held space bar
+		// would flip play and pause, a press fires once.
 		let commands = [
-			UIKeyCommand(input: " ", modifierFlags: [], action: #selector(handleSpaceKey)),
 			UIKeyCommand(input: UIKeyCommand.inputLeftArrow, modifierFlags: [], action: #selector(handleLeftArrowKey)),
 			UIKeyCommand(input: UIKeyCommand.inputRightArrow, modifierFlags: [], action: #selector(handleRightArrowKey)),
 		]
-		// Without priority the system keeps the space bar for focused controls.
 		for command in commands { command.wantsPriorityOverSystemBehavior = true }
-		// A held space bar would flip play and pause on every repeat; the arrows
-		// keep repeating so holding one keeps seeking.
-		if #available(iOS 17.0, *) {
-			commands[0].isRepeatable = false
-		}
 		return commands
+	}
+
+	override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+		guard presses.contains(where: { $0.key?.keyCode == .keyboardSpacebar }) else {
+			super.pressesBegan(presses, with: event)
+			return
+		}
+		if keyboardInputAllowed { viewModel.togglePlayPause() }
 	}
 
 	/// The prompts and the lock mode own the input, same as the touch controls:
 	/// nothing may resume or move playback under them.
 	private var keyboardInputAllowed: Bool {
 		!viewModel.showStillWatching && !viewModel.showEpisodeList && !viewModel.controlsLocked
-	}
-
-	@objc private func handleSpaceKey() {
-		guard keyboardInputAllowed else { return }
-		viewModel.togglePlayPause()
 	}
 
 	@objc private func handleLeftArrowKey() {
